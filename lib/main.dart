@@ -83,25 +83,40 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
         //     ],
         //   ),
         // )
-        child: NavigationBar(
-          selectedIndex: index,
-          onDestinationSelected: (i) {
-            setState(() {
-              index = i;
-            });
-          },
-          destinations: [
-            NavigationDestination(
-              label: 'One',
-              icon: Icon(Icons.home),
+        child: Stack(
+          children: [
+            NavigationBar(
+              selectedIndex: index,
+              backgroundColor: Colors.white,
+              onDestinationSelected: (i) {
+                setState(() {
+                  index = i;
+                });
+              },
+              destinations: [
+                NavigationDestination(
+                  label: 'One',
+                  icon: Icon(Icons.home),
+                ),
+                NavigationDestination(
+                  label: 'Two',
+                  icon: Icon(Icons.ac_unit),
+                ),
+                NavigationDestination(
+                  label: 'Three',
+                  icon: Icon(Icons.access_time_filled_outlined),
+                ),
+              ],
             ),
-            NavigationDestination(
-              label: 'Two',
-              icon: Icon(Icons.ac_unit),
-            ),
-            NavigationDestination(
-              label: 'Three',
-              icon: Icon(Icons.access_time_filled_outlined),
+            AnimatedSwitcher(
+              duration: const Duration(milliseconds: 600),
+              child: !context
+                      .watch<AnimationsProvider>()
+                      .showCenterWidgetAnimationCall
+                  ? SizedBox()
+                  : Container(
+                      color: Colors.black.withOpacity(0.3),
+                    ),
             ),
           ],
         ),
@@ -137,79 +152,138 @@ class PageViewOne extends StatelessWidget {
               ),
             ),
           ),
-          ToFadeView(
-            child: Center(
-              child: Text('To FADE'),
-            ),
-          ),
+          // ToFadeView(
+          //   animationController:
+          //       context.read<AnimationsProvider>().appbarController,
+          //   child: ColoredBox(
+          //     color: Colors.green,
+          //     child: Center(
+          //       child: Text('To FADE'),
+          //     ),
+          //   ),
+          // ),
+          AddWalletFadeView(),
+          WalletListView(),
+          // Visibility(
+          //   visible:
+          //       !context.watch<AnimationsProvider>().actionWidgetAnimationCall,
+          //   child: ToFadeView(
+          //     animationController:
+          //         context.read<AnimationsProvider>().arrowTitleController,
+          //     child: Container(
+          //       height: 400,
+          //       color: Colors.blue,
+          //       child: Center(
+          //         child: Text('SECOND HIDE'),
+          //       ),
+          //     ),
+          //   ),
+          // ),
         ],
       ),
     );
   }
 }
 
-class ToFadeView extends StatefulWidget {
+class WalletListView extends StatelessWidget {
+  const WalletListView({
+    Key? key,
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedSwitcher(
+      duration: const Duration(milliseconds: 600),
+      child: !context.watch<AnimationsProvider>().showCenterWidgetAnimationCall
+          ? SizedBox()
+          : Column(
+              children: [
+                Flexible(
+                  flex: 9,
+                  child: Container(
+                    child: ColoredBox(
+                      color: Colors.blue,
+                      child: Center(
+                        child: Text('SECOND HIDE'),
+                      ),
+                    ),
+                  ),
+                ),
+                Flexible(
+                  flex: 1,
+                  child: Container(
+                    color: Colors.black.withOpacity(0.3),
+                  ),
+                ),
+              ],
+            ),
+    );
+  }
+}
+
+class AddWalletFadeView extends StatelessWidget {
+  const AddWalletFadeView({
+    Key? key,
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedSwitcher(
+      duration: const Duration(milliseconds: 600),
+      child: !context.watch<AnimationsProvider>().actionWidgetAnimationCall
+          ? SizedBox()
+          : Container(
+              child: ColoredBox(
+                color: Colors.green,
+                child: Center(
+                  child: Text('To FADE'),
+                ),
+              ),
+            ),
+    );
+  }
+}
+
+class ToFadeView extends StatelessWidget {
   const ToFadeView({
     Key? key,
     required this.child,
+    required this.animationController,
     this.visibleForDefault = false,
   }) : super(key: key);
 
   final bool visibleForDefault;
+
   final Widget child;
 
-  @override
-  State<ToFadeView> createState() => _ToFadeViewState();
-}
-
-class _ToFadeViewState extends State<ToFadeView>
-    with SingleTickerProviderStateMixin {
-  late AnimationController _animationController;
-  late Animation<double> _opacityAnimation;
-
-  @override
-  void initState() {
-    super.initState();
-
-    _animationController =
-        context.read<AnimationsProvider>().animationController;
-
-    _opacityAnimation = Tween<double>(
-      begin: !widget.visibleForDefault ? 0 : 1,
-      end: !widget.visibleForDefault ? 1 : 0,
-    ).animate(
-      CurvedAnimation(
-        parent: _animationController,
-        curve: Interval(0, 0.2, curve: Curves.easeIn),
-        reverseCurve: Interval(0.8, 1, curve: Curves.easeInOut),
-      ),
-    );
-  }
+  final AnimationController animationController;
 
   @override
   Widget build(BuildContext context) {
     return AnimatedBuilder(
-      animation: _animationController,
+      animation: animationController,
       builder: (_, Widget? child) => Visibility(
-        visible: _animationController.value != animationBeginValue,
+        visible: animationController.value != animationBeginValue,
         child: FadeTransition(
           opacity: _opacityAnimation,
           child: child,
         ),
       ),
-      child: ColoredBox(
-        color: Colors.white,
-        child: Column(
-          mainAxisSize: MainAxisSize.max,
-          children: <Widget>[
-            Expanded(child: widget.child),
-          ],
-        ),
-      ),
+      child: child,
     );
   }
 
-  double get animationBeginValue => widget.visibleForDefault ? 1 : 0;
+  Animation<double> get _opacityAnimation => Tween<double>(
+        begin: !visibleForDefault ? 0 : 1,
+        end: !visibleForDefault ? 1 : 0,
+      ).animate(
+        CurvedAnimation(
+          parent: animationController,
+          curve: Interval(0, 0.5, curve: Curves.easeIn),
+        ),
+      );
+
+  double get animationBeginValue => visibleForDefault ? 1 : 0;
 }
 
 class PageViewTwo extends StatelessWidget {
@@ -255,34 +329,67 @@ class PageViewThree extends StatelessWidget {
 }
 
 class AnimationsProvider extends ChangeNotifier {
-  late AnimationController _animationController;
+  late AnimationController _appbarController;
+  late AnimationController _arrowTitleController;
+
   bool _actionWidgetAnimationCall = false;
+  bool _centerWidgetAnimationCall = false;
 
   void addVsyncToAnimation(TickerProvider state) {
-    _animationController = AnimationController(
+    _appbarController = AnimationController(
       vsync: state,
       duration: const Duration(milliseconds: 600),
     );
+
+    _arrowTitleController = AnimationController(
+      vsync: state,
+      duration: const Duration(milliseconds: 600),
+      lowerBound: 0,
+      upperBound: 0.5,
+    );
   }
 
-  AnimationController get animationController => _animationController;
+  AnimationController get appbarController => _appbarController;
+  AnimationController get arrowTitleController => _arrowTitleController;
+
   bool get actionWidgetAnimationCall => _actionWidgetAnimationCall;
+  bool get centerWidgetAnimationCall => _centerWidgetAnimationCall;
+  bool get showCenterWidgetAnimationCall =>
+      !_actionWidgetAnimationCall && _centerWidgetAnimationCall;
 
   void runActionAppbarAnimation() {
-    if (isAnimationCompleted) {
-      _actionWidgetAnimationCall = false;
-      _animationController.reverse();
-    } else if (isAnimationDismissed) {
-      _actionWidgetAnimationCall = true;
-      _animationController.forward();
+    if (isAnimationCompleted(_appbarController)) {
+      _changeFlagsForActionAnimation();
+      _appbarController.reverse();
+    } else if (isAnimationDismissed(_appbarController)) {
+      _changeFlagsForActionAnimation();
+      _appbarController.forward();
     }
+  }
 
+  void runCenterWidgetAppbarAnimation() {
+    if (isAnimationCompleted(_arrowTitleController)) {
+      _changeFlagsForCenterAnimation();
+      _arrowTitleController.reverse();
+    } else if (isAnimationDismissed(_arrowTitleController)) {
+      _changeFlagsForCenterAnimation();
+      _arrowTitleController.forward();
+    }
+  }
+
+  void _changeFlagsForActionAnimation() {
+    _actionWidgetAnimationCall = !_actionWidgetAnimationCall;
     notifyListeners();
   }
 
-  bool get isAnimationDismissed =>
+  void _changeFlagsForCenterAnimation() {
+    _centerWidgetAnimationCall = !_centerWidgetAnimationCall;
+    notifyListeners();
+  }
+
+  bool isAnimationDismissed(AnimationController animationController) =>
       animationController.status == AnimationStatus.dismissed;
-  bool get isAnimationCompleted =>
+  bool isAnimationCompleted(AnimationController animationController) =>
       animationController.status == AnimationStatus.completed;
 }
 // class AnimationsControllersProvider extends ChangeNotifier {
@@ -343,33 +450,23 @@ class ArrowTittleWidget extends StatefulWidget {
   State<ArrowTittleWidget> createState() => _ArrowTittleWidgetState();
 }
 
-class _ArrowTittleWidgetState extends State<ArrowTittleWidget>
-    with SingleTickerProviderStateMixin {
-  late AnimationController _rotatingArrowController;
-
+class _ArrowTittleWidgetState extends State<ArrowTittleWidget> {
   @override
   void initState() {
     super.initState();
 
-    _rotatingArrowController = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 600),
-      lowerBound: 0,
-      upperBound: 0.5,
-    );
+    // _rotatingArrowController = AnimationController(
+    //   vsync: this,
+    //   duration: const Duration(milliseconds: 600),
+    //   lowerBound: 0,
+    //   upperBound: 0.5,
+    // );
   }
 
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTap: () {
-        if (_rotatingArrowController.status == AnimationStatus.completed) {
-          _rotatingArrowController.reverse();
-        } else if (_rotatingArrowController.status ==
-            AnimationStatus.dismissed) {
-          _rotatingArrowController.forward();
-        }
-      },
+      onTap: context.read<AnimationsProvider>().runCenterWidgetAppbarAnimation,
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
         mainAxisSize: MainAxisSize.max,
@@ -382,7 +479,7 @@ class _ArrowTittleWidgetState extends State<ArrowTittleWidget>
             ),
           ),
           RotationTransition(
-            turns: _rotatingArrowController,
+            turns: context.read<AnimationsProvider>().arrowTitleController,
             child: Icon(
               Icons.expand_more_rounded,
               color: Colors.black,
@@ -418,8 +515,7 @@ class MyAppbarWidget extends StatefulWidget {
   State<MyAppbarWidget> createState() => _MyAppbarWidgetState();
 }
 
-class _MyAppbarWidgetState extends State<MyAppbarWidget>
-    with SingleTickerProviderStateMixin {
+class _MyAppbarWidgetState extends State<MyAppbarWidget> {
   // late AnimationController _animationController;
   // animations handlers
   late Animation<Offset> _animationTranslateDown;
@@ -525,7 +621,7 @@ class _MyAppbarWidgetState extends State<MyAppbarWidget>
 
   void _initAnimations() {
     AnimationController _animationController =
-        context.read<AnimationsProvider>().animationController;
+        context.read<AnimationsProvider>().appbarController;
 
     _animationTranslateDown = Tween<Offset>(
       begin: const Offset(0, -3),
