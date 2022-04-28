@@ -695,8 +695,9 @@ class _MyAppbarWidgetState extends State<MyAppbarWidget> {
     );
 
     _animationRotationActionWidget = Tween<double>(
-      begin: fadeOut ? 0.125 : 0,
-      end: fadeOut ? 0 : 0.125,
+      // begin: fadeOut ? 0.125 : 0,
+      begin: 0,
+      end: 0.125,
     ).animate(
       CurvedAnimation(
         parent: _animationController,
