@@ -1,9 +1,6 @@
 import 'package:animations/animations.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:tools_tkmonkey/tools_tkmonkey.dart';
-
-import 'controller.dart';
 
 void main() => runApp(
       ChangeNotifierProvider(
