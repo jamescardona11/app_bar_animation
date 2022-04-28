@@ -263,7 +263,7 @@ class PageViewTwo extends StatelessWidget {
       body: Center(
         child: GestureDetector(
           onTap: context.read<AnimationsProvider>().runActionAppbarAnimation,
-          child: Text('Page Two'),
+          child: Text('CLICK HERE'),
         ),
       ),
     );
