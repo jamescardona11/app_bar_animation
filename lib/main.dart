@@ -48,6 +48,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
   @override
   Widget build(BuildContext context) {
     final bottomPadding = MediaQuery.of(context).padding.bottom;
+    print(bottomPadding);
     return Scaffold(
       body: PageTransitionSwitcher(
         transitionBuilder: (
@@ -66,7 +67,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
       ),
       bottomNavigationBar: AnimatedContainer(
         height: !context.watch<AnimationsProvider>().actionWidgetAnimationCalled
-            ? (75 + bottomPadding / 2)
+            ? 80
             : 0,
         duration: Duration(milliseconds: 300),
         child: Stack(
@@ -249,11 +250,17 @@ class PageViewTwo extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: TwoAppbar(),
-      body: Center(
-        child: GestureDetector(
-          onTap: context.read<AnimationsProvider>().runActionAppbarAnimation,
-          child: Text('CLICK HERE'),
-        ),
+      body: Stack(
+        children: [
+          Center(
+            child: GestureDetector(
+              onTap:
+                  context.read<AnimationsProvider>().runActionAppbarAnimation,
+              child: Text('CLICK HERE'),
+            ),
+          ),
+          AddWalletFadeView(),
+        ],
       ),
     );
   }
@@ -268,7 +275,12 @@ class PageViewThree extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: ThreeAppbar(),
-      body: Center(child: Text('Page Three')),
+      body: Center(
+        child: GestureDetector(
+          onTap: context.read<AnimationsProvider>().runActionAppbarAnimation,
+          child: Text('CLICK HERE'),
+        ),
+      ),
     );
   }
 }
@@ -397,32 +409,64 @@ class TwoAppbar extends StatelessWidget implements PreferredSizeWidget {
 }
 
 class ThreeAppbar extends StatelessWidget implements PreferredSizeWidget {
-  const ThreeAppbar({
+  ThreeAppbar({
     Key? key,
   }) : super(key: key);
 
   @override
   Size get preferredSize => const Size.fromHeight(kToolbarHeight);
 
+  final isReset = ValueNotifier<bool>(true);
+
   @override
   Widget build(BuildContext context) {
+    final showReset =
+        context.watch<AnimationsProvider>().actionWidgetAnimationCalled;
     return MyAppbarWidget(
-      actionType: ActionWidgetAnimation.nothing,
+      actionType: !showReset
+          ? ActionWidgetAnimation.nothing
+          : ActionWidgetAnimation.rotate,
       leftWidget: Text('Add Wallet'),
       centerWidget: Text(
         'Settings',
         overflow: TextOverflow.ellipsis,
       ),
-      rightWidget: TextButton(
-        onPressed: () {
-          print('Reset click');
-        },
-        child: Text(
-          'Reset',
-          overflow: TextOverflow.ellipsis,
-        ),
+      rightWidget: ResetOrCloseView(
+        showReset: showReset,
       ),
     );
+  }
+}
+
+class ResetOrCloseView extends StatelessWidget {
+  const ResetOrCloseView({
+    Key? key,
+    required this.showReset,
+  }) : super(key: key);
+  final bool showReset;
+
+  @override
+  Widget build(BuildContext context) {
+    return !showReset
+        ? TextButton(
+            onPressed: () {
+              print('Reset click');
+            },
+            child: Text(
+              'Reset',
+              overflow: TextOverflow.ellipsis,
+            ),
+          )
+        : DecoratedBox(
+            decoration: BoxDecoration(
+              color: Colors.blue,
+              borderRadius: BorderRadius.circular(16),
+            ),
+            child: Padding(
+              padding: EdgeInsets.all(4),
+              child: Icon(Icons.add_rounded, color: Colors.white),
+            ),
+          );
   }
 }
 
@@ -436,18 +480,6 @@ class ArrowTittleWidget extends StatefulWidget {
 }
 
 class _ArrowTittleWidgetState extends State<ArrowTittleWidget> {
-  @override
-  void initState() {
-    super.initState();
-
-    // _rotatingArrowController = AnimationController(
-    //   vsync: this,
-    //   duration: const Duration(milliseconds: 600),
-    //   lowerBound: 0,
-    //   upperBound: 0.5,
-    // );
-  }
-
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
@@ -517,16 +549,7 @@ class _MyAppbarWidgetState extends State<MyAppbarWidget> {
   void initState() {
     super.initState();
 
-    // animationController = AnimationController(
-    //   vsync: this,
-    //   duration: const Duration(milliseconds: 600),
-    // );
-
     _initAnimations();
-
-    // Provider.of<AnimationsControllersProvider>(context, listen: false)
-    //     .createCustomController(this);
-    //animation: Listenable.merge([progressAnimation, cloudOutAnimation]),
   }
 
   @override
@@ -589,8 +612,9 @@ class _MyAppbarWidgetState extends State<MyAppbarWidget> {
           Align(
             alignment: Alignment.centerRight,
             child: GestureDetector(
-              onTap:
-                  context.read<AnimationsProvider>().runActionAppbarAnimation,
+              onTap: _isTapEnable
+                  ? context.read<AnimationsProvider>().runActionAppbarAnimation
+                  : () {},
               child: _RotateFadeOrNothing(
                 type: widget.actionType,
                 animationTurns: _animationRotationActionWidget,
@@ -603,6 +627,12 @@ class _MyAppbarWidgetState extends State<MyAppbarWidget> {
       ),
     );
   }
+
+  bool get _isTapEnable =>
+      !isFadeOut ||
+      context.watch<AnimationsProvider>().actionWidgetAnimationCalled;
+
+  bool get isFadeOut => widget.actionType == ActionWidgetAnimation.fadeOut;
 
   void _initAnimations() {
     AnimationController _animationController =
@@ -638,11 +668,9 @@ class _MyAppbarWidgetState extends State<MyAppbarWidget> {
       ),
     );
 
-    final fadeOut = widget.actionType == ActionWidgetAnimation.fadeOut;
-
     _animationOppacityEnd = Tween<double>(
-      begin: fadeOut ? 0.0 : 1,
-      end: fadeOut ? 1 : 0,
+      begin: isFadeOut ? 0.0 : 1,
+      end: isFadeOut ? 1 : 0,
     ).animate(
       CurvedAnimation(
         parent: _animationController,
