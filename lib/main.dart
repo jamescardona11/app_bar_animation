@@ -65,21 +65,10 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
         child: listOfWidgets[index],
       ),
       bottomNavigationBar: AnimatedContainer(
-        height: !context.watch<AnimationsProvider>().actionWidgetAnimationCall
+        height: !context.watch<AnimationsProvider>().actionWidgetAnimationCalled
             ? (75 + bottomPadding / 2)
             : 0,
         duration: Duration(milliseconds: 300),
-        // child: Container(
-        //   color: Colors.amber,
-        //   child: Row(
-        //     mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        //     children: [
-        //       Icon(Icons.abc),
-        //       Icon(Icons.abc),
-        //       Icon(Icons.abc),
-        //     ],
-        //   ),
-        // )
         child: Stack(
           children: [
             NavigationBar(
@@ -108,7 +97,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
             VisibilityAndFadeAnimation(
               conditionToStarAnimation: !context
                   .watch<AnimationsProvider>()
-                  .showCenterWidgetAnimationCall,
+                  .centerWidgetAnimationCalled,
               child: GestureDetector(
                 onTap: context
                     .read<AnimationsProvider>()
@@ -181,7 +170,7 @@ class WalletListFadeView extends StatelessWidget {
   Widget build(BuildContext context) {
     return VisibilityAndFadeAnimation(
       conditionToStarAnimation:
-          !context.watch<AnimationsProvider>().showCenterWidgetAnimationCall,
+          !context.watch<AnimationsProvider>().centerWidgetAnimationCalled,
       child: Column(
         children: [
           Flexible(
@@ -219,7 +208,7 @@ class AddWalletFadeView extends StatelessWidget {
   Widget build(BuildContext context) {
     return VisibilityAndFadeAnimation(
       conditionToStarAnimation:
-          !context.watch<AnimationsProvider>().actionWidgetAnimationCall,
+          !context.watch<AnimationsProvider>().actionWidgetAnimationCalled,
       child: Container(
         child: ColoredBox(
           color: Colors.green,
@@ -288,8 +277,8 @@ class AnimationsProvider extends ChangeNotifier {
   late AnimationController _appbarController;
   late AnimationController _arrowTitleController;
 
-  bool _actionWidgetAnimationCall = false;
-  bool _centerWidgetAnimationCall = false;
+  bool _actionWidgetAnimationCalled = false;
+  bool _centerWidgetAnimationCalled = false;
 
   void addVsyncToAnimation(TickerProvider state) {
     _appbarController = AnimationController(
@@ -308,10 +297,9 @@ class AnimationsProvider extends ChangeNotifier {
   AnimationController get appbarController => _appbarController;
   AnimationController get arrowTitleController => _arrowTitleController;
 
-  bool get actionWidgetAnimationCall => _actionWidgetAnimationCall;
-  bool get centerWidgetAnimationCall => _centerWidgetAnimationCall;
-  bool get showCenterWidgetAnimationCall =>
-      !_actionWidgetAnimationCall && _centerWidgetAnimationCall;
+  bool get actionWidgetAnimationCalled => _actionWidgetAnimationCalled;
+  bool get centerWidgetAnimationCalled =>
+      !_actionWidgetAnimationCalled && _centerWidgetAnimationCalled;
 
   void runActionAppbarAnimation() {
     if (isAnimationCompleted(_appbarController)) {
@@ -334,12 +322,12 @@ class AnimationsProvider extends ChangeNotifier {
   }
 
   void _changeFlagsForActionAnimation() {
-    _actionWidgetAnimationCall = !_actionWidgetAnimationCall;
+    _actionWidgetAnimationCalled = !_actionWidgetAnimationCalled;
     notifyListeners();
   }
 
   void _changeFlagsForCenterAnimation() {
-    _centerWidgetAnimationCall = !_centerWidgetAnimationCall;
+    _centerWidgetAnimationCalled = !_centerWidgetAnimationCalled;
     notifyListeners();
   }
 
@@ -348,26 +336,6 @@ class AnimationsProvider extends ChangeNotifier {
   bool isAnimationCompleted(AnimationController animationController) =>
       animationController.status == AnimationStatus.completed;
 }
-// class AnimationsControllersProvider extends ChangeNotifier {
-//   late CustomAnimationCtrl _appbarController;
-//   late CustomAnimationCtrl _addWalletFadeController;
-
-//   CustomAnimationCtrl get customAnimationController => _appbarController;
-
-//   void createCustomController(TKMControllerMixin state) {
-//     _appbarController = CustomAnimationCtrl()..addState = state;
-//   }
-
-//   void onBackTap() {}
-
-//   void onActionWidgetTap() {}
-
-//   void onTitleTap() {}
-
-//   void runAnimation() {
-//     _appbarController.runFunction();
-//   }
-// }
 
 class OneAppbar extends StatelessWidget implements PreferredSizeWidget {
   const OneAppbar({
