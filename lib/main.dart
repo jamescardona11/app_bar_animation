@@ -108,15 +108,16 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                 ),
               ],
             ),
-            AnimatedSwitcher(
-              duration: const Duration(milliseconds: 600),
-              child: !context
-                      .watch<AnimationsProvider>()
-                      .showCenterWidgetAnimationCall
-                  ? SizedBox()
-                  : Container(
-                      color: Colors.black.withOpacity(0.3),
-                    ),
+            VisibilityAndFadeAnimation(
+              conditionToStarAnimation: !context
+                  .watch<AnimationsProvider>()
+                  .showCenterWidgetAnimationCall,
+              child: GestureDetector(
+                onTap: context
+                    .read<AnimationsProvider>()
+                    .runCenterWidgetAppbarAnimation,
+                child: OverlayForBottombarView(),
+              ),
             ),
           ],
         ),
@@ -126,7 +127,8 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
 
   @override
   void dispose() {
-    context.read<AnimationsProvider>().dispose();
+    context.read<AnimationsProvider>().arrowTitleController.dispose();
+    context.read<AnimationsProvider>().appbarController.dispose();
     super.dispose();
   }
 }
@@ -152,71 +154,61 @@ class PageViewOne extends StatelessWidget {
               ),
             ),
           ),
-          // ToFadeView(
-          //   animationController:
-          //       context.read<AnimationsProvider>().appbarController,
-          //   child: ColoredBox(
-          //     color: Colors.green,
-          //     child: Center(
-          //       child: Text('To FADE'),
-          //     ),
-          //   ),
-          // ),
           AddWalletFadeView(),
-          WalletListView(),
-          // Visibility(
-          //   visible:
-          //       !context.watch<AnimationsProvider>().actionWidgetAnimationCall,
-          //   child: ToFadeView(
-          //     animationController:
-          //         context.read<AnimationsProvider>().arrowTitleController,
-          //     child: Container(
-          //       height: 400,
-          //       color: Colors.blue,
-          //       child: Center(
-          //         child: Text('SECOND HIDE'),
-          //       ),
-          //     ),
-          //   ),
-          // ),
+          WalletListFadeView(),
         ],
       ),
     );
   }
 }
 
-class WalletListView extends StatelessWidget {
-  const WalletListView({
+class OverlayForBottombarView extends StatelessWidget {
+  const OverlayForBottombarView({
     Key? key,
   }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    return AnimatedSwitcher(
-      duration: const Duration(milliseconds: 600),
-      child: !context.watch<AnimationsProvider>().showCenterWidgetAnimationCall
-          ? SizedBox()
-          : Column(
-              children: [
-                Flexible(
-                  flex: 9,
-                  child: Container(
-                    child: ColoredBox(
-                      color: Colors.blue,
-                      child: Center(
-                        child: Text('SECOND HIDE'),
-                      ),
-                    ),
-                  ),
+    return Container(
+      color: Colors.black.withOpacity(0.3),
+    );
+  }
+}
+
+class WalletListFadeView extends StatelessWidget {
+  const WalletListFadeView({
+    Key? key,
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return VisibilityAndFadeAnimation(
+      conditionToStarAnimation:
+          !context.watch<AnimationsProvider>().showCenterWidgetAnimationCall,
+      child: Column(
+        children: [
+          Flexible(
+            flex: 9,
+            child: Container(
+              child: ColoredBox(
+                color: Colors.blue,
+                child: Center(
+                  child: Text('SECOND HIDE'),
                 ),
-                Flexible(
-                  flex: 1,
-                  child: Container(
-                    color: Colors.black.withOpacity(0.3),
-                  ),
-                ),
-              ],
+              ),
             ),
+          ),
+          Flexible(
+            flex: 1,
+            child: GestureDetector(
+              onTap: context
+                  .read<AnimationsProvider>()
+                  .runCenterWidgetAppbarAnimation,
+              child: OverlayForBottombarView(),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
@@ -228,62 +220,38 @@ class AddWalletFadeView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return AnimatedSwitcher(
-      duration: const Duration(milliseconds: 600),
-      child: !context.watch<AnimationsProvider>().actionWidgetAnimationCall
-          ? SizedBox()
-          : Container(
-              child: ColoredBox(
-                color: Colors.green,
-                child: Center(
-                  child: Text('To FADE'),
-                ),
-              ),
-            ),
+    return VisibilityAndFadeAnimation(
+      conditionToStarAnimation:
+          !context.watch<AnimationsProvider>().actionWidgetAnimationCall,
+      child: Container(
+        child: ColoredBox(
+          color: Colors.green,
+          child: Center(
+            child: Text('To FADE'),
+          ),
+        ),
+      ),
     );
   }
 }
 
-class ToFadeView extends StatelessWidget {
-  const ToFadeView({
+class VisibilityAndFadeAnimation extends StatelessWidget {
+  const VisibilityAndFadeAnimation({
     Key? key,
+    required this.conditionToStarAnimation,
     required this.child,
-    required this.animationController,
-    this.visibleForDefault = false,
   }) : super(key: key);
 
-  final bool visibleForDefault;
-
+  final bool conditionToStarAnimation;
   final Widget child;
-
-  final AnimationController animationController;
 
   @override
   Widget build(BuildContext context) {
-    return AnimatedBuilder(
-      animation: animationController,
-      builder: (_, Widget? child) => Visibility(
-        visible: animationController.value != animationBeginValue,
-        child: FadeTransition(
-          opacity: _opacityAnimation,
-          child: child,
-        ),
-      ),
-      child: child,
+    return AnimatedSwitcher(
+      duration: const Duration(milliseconds: 600),
+      child: conditionToStarAnimation ? const SizedBox() : child,
     );
   }
-
-  Animation<double> get _opacityAnimation => Tween<double>(
-        begin: !visibleForDefault ? 0 : 1,
-        end: !visibleForDefault ? 1 : 0,
-      ).animate(
-        CurvedAnimation(
-          parent: animationController,
-          curve: Interval(0, 0.5, curve: Curves.easeIn),
-        ),
-      );
-
-  double get animationBeginValue => visibleForDefault ? 1 : 0;
 }
 
 class PageViewTwo extends StatelessWidget {
