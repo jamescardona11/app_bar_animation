@@ -262,15 +262,13 @@ class PageViewTwo extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text(
-          'Appbar 2',
-          style: TextStyle(color: Colors.black),
+      appBar: TwoAppbar(),
+      body: Center(
+        child: GestureDetector(
+          onTap: context.read<AnimationsProvider>().runActionAppbarAnimation,
+          child: Text('Page Two'),
         ),
-        backgroundColor: Colors.transparent,
-        elevation: 0,
       ),
-      body: Center(child: Text('Page Two')),
     );
   }
 }
@@ -283,14 +281,7 @@ class PageViewThree extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text(
-          'Appbar 3',
-          style: TextStyle(color: Colors.black),
-        ),
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-      ),
+      appBar: ThreeAppbar(),
       body: Center(child: Text('Page Three')),
     );
   }
@@ -403,6 +394,67 @@ class OneAppbar extends StatelessWidget implements PreferredSizeWidget {
         child: Padding(
           padding: EdgeInsets.all(4),
           child: Icon(Icons.add_rounded, color: Colors.white),
+        ),
+      ),
+    );
+  }
+}
+
+class TwoAppbar extends StatelessWidget implements PreferredSizeWidget {
+  const TwoAppbar({
+    Key? key,
+  }) : super(key: key);
+
+  @override
+  Size get preferredSize => const Size.fromHeight(kToolbarHeight);
+
+  @override
+  Widget build(BuildContext context) {
+    return MyAppbarWidget(
+      actionType: ActionWidgetAnimation.fadeOut,
+      leftWidget: Text('Consolidate'),
+      centerWidget: Text(
+        'Consolidate',
+        overflow: TextOverflow.ellipsis,
+      ),
+      rightWidget: DecoratedBox(
+        decoration: BoxDecoration(
+          color: Colors.blue,
+          borderRadius: BorderRadius.circular(16),
+        ),
+        child: Padding(
+          padding: EdgeInsets.all(4),
+          child: Icon(Icons.add_rounded, color: Colors.white),
+        ),
+      ),
+    );
+  }
+}
+
+class ThreeAppbar extends StatelessWidget implements PreferredSizeWidget {
+  const ThreeAppbar({
+    Key? key,
+  }) : super(key: key);
+
+  @override
+  Size get preferredSize => const Size.fromHeight(kToolbarHeight);
+
+  @override
+  Widget build(BuildContext context) {
+    return MyAppbarWidget(
+      actionType: ActionWidgetAnimation.nothing,
+      leftWidget: Text('Add Wallet'),
+      centerWidget: Text(
+        'Settings',
+        overflow: TextOverflow.ellipsis,
+      ),
+      rightWidget: TextButton(
+        onPressed: () {
+          print('Reset click');
+        },
+        child: Text(
+          'Reset',
+          overflow: TextOverflow.ellipsis,
         ),
       ),
     );
@@ -621,12 +673,11 @@ class _MyAppbarWidgetState extends State<MyAppbarWidget> {
       ),
     );
 
-    final startOnOpacityActionWidget =
-        widget.actionType == ActionWidgetAnimation.fadeOut;
+    final fadeOut = widget.actionType == ActionWidgetAnimation.fadeOut;
 
     _animationOppacityEnd = Tween<double>(
-      begin: startOnOpacityActionWidget ? 0.0 : 1,
-      end: startOnOpacityActionWidget ? 1 : 0,
+      begin: fadeOut ? 0.0 : 1,
+      end: fadeOut ? 1 : 0,
     ).animate(
       CurvedAnimation(
         parent: _animationController,
@@ -646,8 +697,10 @@ class _MyAppbarWidgetState extends State<MyAppbarWidget> {
       ),
     );
 
-    _animationRotationActionWidget =
-        Tween<double>(begin: 0, end: 0.125).animate(
+    _animationRotationActionWidget = Tween<double>(
+      begin: fadeOut ? 0.125 : 0,
+      end: fadeOut ? 0 : 0.125,
+    ).animate(
       CurvedAnimation(
         parent: _animationController,
         curve: const Interval(0, 0.5),
@@ -687,8 +740,16 @@ class _RotateFadeOrNothing extends StatelessWidget {
           child: child,
         );
 
-      case ActionWidgetAnimation.fadeIn:
       case ActionWidgetAnimation.fadeOut:
+        return FadeTransition(
+          opacity: animationOpacity!,
+          child: RotationTransition(
+            turns: animationTurns!,
+            child: child,
+          ),
+        );
+
+      case ActionWidgetAnimation.fadeIn:
         return FadeTransition(
           opacity: animationOpacity!,
           child: child,
